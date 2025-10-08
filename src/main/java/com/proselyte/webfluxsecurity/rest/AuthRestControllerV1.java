@@ -5,9 +5,9 @@ import com.proselyte.webfluxsecurity.dto.AuthResponseDto;
 import com.proselyte.webfluxsecurity.dto.UserDto;
 import com.proselyte.webfluxsecurity.entity.UserEntity;
 import com.proselyte.webfluxsecurity.mapper.UserMapper;
-import com.proselyte.webfluxsecurity.repository.UserRepositoty;
 import com.proselyte.webfluxsecurity.security.CustomPrincipal;
 import com.proselyte.webfluxsecurity.security.SecurityService;
+import com.proselyte.webfluxsecurity.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +19,13 @@ import reactor.core.publisher.Mono;
 public class AuthRestControllerV1 {
 
     private final SecurityService securityService;
-    private final UserRepositoty userRepositoty;
+    private final UserService userService;
     private final UserMapper userMapper;
 
     @PostMapping("/register")
     public Mono<UserDto> register(@RequestBody UserDto dto) {
         UserEntity entity = userMapper.map(dto);
-        return userRepositoty.save(entity)
+        return userService.registerUser(entity)
                 .map(userMapper::map);
     }
 
@@ -46,7 +46,7 @@ public class AuthRestControllerV1 {
     public Mono<UserDto> getUserInfo(Authentication authentication) {
         CustomPrincipal customPrincipal = (CustomPrincipal) authentication.getPrincipal();
 
-        return userRepositoty.findById(customPrincipal.getId())
+        return userService.getUserById(customPrincipal.getId())
                 .map(userMapper::map);
     }
 }

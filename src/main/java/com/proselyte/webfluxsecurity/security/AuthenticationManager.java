@@ -2,11 +2,10 @@ package com.proselyte.webfluxsecurity.security;
 
 import com.proselyte.webfluxsecurity.entity.UserEntity;
 import com.proselyte.webfluxsecurity.exception.UnauthorizedException;
-import com.proselyte.webfluxsecurity.repository.UserRepositoty;
+import com.proselyte.webfluxsecurity.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -14,13 +13,13 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class AuthenticationManager implements ReactiveAuthenticationManager {
 
-    private final UserRepositoty userRepositoty;
+    private final UserService userService;
 
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
         CustomPrincipal principal = (CustomPrincipal) authentication.getPrincipal();
 
-        return userRepositoty.findById(principal.getId())
+        return userService.getUserById(principal.getId())
                 .filter(UserEntity::isEnabled)
                 .switchIfEmpty(Mono.error(new UnauthorizedException("User disabled")))
                 .map(user -> authentication);
